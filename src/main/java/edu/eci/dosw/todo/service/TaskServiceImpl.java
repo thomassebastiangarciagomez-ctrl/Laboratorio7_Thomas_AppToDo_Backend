@@ -19,16 +19,17 @@ public class TaskServiceImpl implements TaskService{
     private TaskRepository taskRepository;
     private UserRepository userRepository;
 
-    public TaskServiceImpl(TaskRepository taskRepository){
+    public TaskServiceImpl(TaskRepository taskRepository, UserRepository userRepository){
         this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
     }
 
     /**
      * 
      */
     @Override
-    public List<TaskResponse> findAll(){
-        return taskRepository.findAll().stream()
+    public List<TaskResponse> findAll(Long userId){
+        return taskRepository.findByUserId(userId).stream()
                 .map(entity -> TaskResponse.fromEntity(entity))
                 .toList();
     }
@@ -37,8 +38,8 @@ public class TaskServiceImpl implements TaskService{
      * 
      */
     @Override
-    public TaskResponse findById(Long id){
-        TaskEntity entity = taskRepository.findById(id)
+    public TaskResponse findById(Long id, Long userId){
+        TaskEntity entity = taskRepository.findByIdAndUserId(id, userId)
                  .orElseThrow(() -> new TaskNotFoundException(id));
         return TaskResponse.fromEntity(entity);
     }
@@ -67,8 +68,8 @@ public class TaskServiceImpl implements TaskService{
      * de la aplicacion web
      */
     @Override
-    public TaskResponse update(Long id, TaskUpdateRequest request) {
-        TaskEntity entity = taskRepository.findById(id)
+    public TaskResponse update(Long id, TaskUpdateRequest request, Long userId){
+        TaskEntity entity = taskRepository.findByIdAndUserId(id, userId)
                  .orElseThrow(() -> new TaskNotFoundException(id));
         entity.setTitle(request.getTitle());
         entity.setDescription(request.getDescription());
@@ -83,8 +84,8 @@ public class TaskServiceImpl implements TaskService{
      * Este metodo se encarga de eliminar una tarea dentro de la aplicacion web
      */
     @Override
-    public void delete(Long id){
-         TaskEntity entity = taskRepository.findById(id)
+    public void delete(Long id, Long userId){
+         TaskEntity entity = taskRepository.findByIdAndUserId(id, userId)
                  .orElseThrow(() -> new TaskNotFoundException(id));
         taskRepository.delete(entity);
     }

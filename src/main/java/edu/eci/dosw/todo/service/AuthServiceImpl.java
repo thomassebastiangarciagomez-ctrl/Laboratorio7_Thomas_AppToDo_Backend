@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import edu.eci.dosw.todo.dto.LoginRequest;
 import edu.eci.dosw.todo.dto.RegisterRequest;
@@ -35,7 +36,8 @@ public class AuthServiceImpl implements AuthService{
      * Este metodo se encarga de la logica dentras de la implementacion del registro de un nuevo usuario
      * en la aplicacion web
      */
-    @Override 
+    @Override
+    @Transactional
     public UserResponse register(RegisterRequest request){
         String email = request.getEmail().trim().toLowerCase();
 
@@ -45,7 +47,7 @@ public class AuthServiceImpl implements AuthService{
 
         UserEntity entity = new UserEntity();
         entity.setName(request.getName());
-        entity.setEmail(request.getEmail());
+        entity.setEmail(email);
         entity.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         entity.setRole(UserRole.USER);
         entity.setCreatedAt(LocalDateTime.now());
@@ -58,7 +60,8 @@ public class AuthServiceImpl implements AuthService{
      * Este metodo se encarga de la logica detras del registro de un usuario que ya cuenta con una cuenta
      * dentro de la aplicacion web
      */
-    @Override 
+    @Override
+    @Transactional
     public TokenResponse login(LoginRequest request){
         UserEntity user = userRepository.findByEmail(request.getEmail().trim().toLowerCase())
                         .filter(entity -> passwordEncoder.matches(request.getPassword(), entity.getPasswordHash()))
@@ -70,7 +73,8 @@ public class AuthServiceImpl implements AuthService{
      * Este metodo se encarga de realizar la logica detras de la consulta de perfil por parte de los usuarios
      * que hayan ingresado a su cuenta.
      */
-    @Override 
+    @Override
+    @Transactional
     public UserResponse getProfile(Long id){
         return userRepository.findById(id)
                 .map(entity -> UserResponse.fromEntity(entity))

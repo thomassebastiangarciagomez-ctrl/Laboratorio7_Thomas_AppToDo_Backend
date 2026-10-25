@@ -1,38 +1,52 @@
 package edu.eci.dosw.todo;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-//import edu.eci.dosw.todo.dto.TaskCreateRequest;
+import edu.eci.dosw.todo.dto.TaskCreateRequest;
 import edu.eci.dosw.todo.dto.TaskResponse;
 import edu.eci.dosw.todo.dto.TaskUpdateRequest;
 import edu.eci.dosw.todo.entity.TaskEntity;
 import edu.eci.dosw.todo.entity.TaskPriority;
 import edu.eci.dosw.todo.entity.TaskStatus;
+import edu.eci.dosw.todo.entity.UserEntity;
+import edu.eci.dosw.todo.exception.TaskNotFoundException;
 import edu.eci.dosw.todo.repository.TaskRepository;
+import edu.eci.dosw.todo.repository.UserRepository;
 import edu.eci.dosw.todo.service.TaskServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskServicesTest {
 
+    private static final Long USER_ID = 1L;
+    private static final Long OTHER_USER_ID = 2L;
+
     @Mock
     private TaskRepository taskRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private TaskServiceImpl taskService;
@@ -40,7 +54,7 @@ public class TaskServicesTest {
     private TaskEntity existingTask;
 
     @BeforeEach
-    public void setUp(){
+    public void setUp() {
         existingTask = new TaskEntity();
         existingTask.setId(1L);
         existingTask.setTitle("Estudiar para el parcial");
@@ -51,122 +65,108 @@ public class TaskServicesTest {
         existingTask.setCreatedAt(LocalDateTime.now());
     }
 
+    // ---------------------------------------------------------------- findAll
+
     /**
-     * Este metodo se encarga de buscar todas las tareas creadas y mostrarlas. Para esto, hay que tener en cuenta que
-     * ya se tiene una tarea creada anteriormente que es existingTask, donde la salida esperada para esta prueba es
-     * la prueba que acabamos de crear.
-     * 
-     * Ayuda de IA Gen: Al tener un repositorio como provicional, el metodo findAll no va a responder de la manera esperada
-     * debido a que siempre va a retornar 0. Para poder solucionar esto se utiliza when, el cual indica al mock que se debe
-     * retornar para evitar esta clase de errores. Para que el mock retorne los valores correspondientes, para listas de
-     * valores se usa List.of, para un elemento en particular se utuliza Optional.of, pero en caso de que retorne algo vacio
-     * se debe utilizar Optional.empty.
-     * 
+     * Solo se consultan las tareas del usuario autenticado. Se verifica ademas que nunca se use findAll() del
+     * repositorio, que devolveria las tareas de todos los usuarios.
      */
     @Test
-    public void findAll_shouldReturnTasks(){
-        when(taskRepository.findAll()).thenReturn(List.of(existingTask));
-        
-        List<TaskResponse> result = taskService.findAll();
+    public void findAll_shouldReturnOnlyTasksOfUser() {
+        when(taskRepository.findByUserId(USER_ID)).thenReturn(List.of(existingTask));
+
+        List<TaskResponse> result = taskService.findAll(USER_ID);
+
         assertEquals(1, result.size());
+        verify(taskRepository, never()).findAll();
     }
 
-    /**
-     * Este metodo se encarga de ejecutar el metodo findById, en este caso buscamos un Id que sabemos que existe y comprobamos
-     * que este se encuentre en la base de datos
-     * 
-     */
-    @Test
-    public void findById_shouldReturnTaskWhenExists(){
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(existingTask));
+    // ---------------------------------------------------------------- findById
 
-        TaskResponse task = taskService.findById(1L);
+    @Test
+    public void findById_shouldReturnTaskWhenExists() {
+        when(taskRepository.findByIdAndUserId(1L, USER_ID)).thenReturn(Optional.of(existingTask));
+
+        TaskResponse task = taskService.findById(1L, USER_ID);
+
         assertEquals(1L, task.getId());
     }
 
-    /**
-     * Este motodo debe verificar que al momento de tratar de consultar una tarea con un ID el cual no existe lance la excepcion
-     * esperada por el sistema, en este caso la excepcion esperada es RuntimeException
-     * 
-     */
     @Test
-    public void findById_shouldThrowExceptionWhenTaskDoesNotExist(){
-        when(taskRepository.findById(99L)).thenReturn(Optional.empty());
+    public void findById_shouldThrowExceptionWhenTaskDoesNotExist() {
+        when(taskRepository.findByIdAndUserId(99L, USER_ID)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> taskService.findById(99L));
+        assertThrows(TaskNotFoundException.class, () -> taskService.findById(99L, USER_ID));
     }
 
     /**
-     * Este metodo se encarga de agregar una nueva tarea a la base de datos, se debe verificar que la tarea creada fue creada de
-     * forma correcta.
-     * 
-     * Para esta parte, recordemos que no se esta interactuando directamente con el repositorio, por ende, al utilizar create va
-     * a retornar un valor null, para esto, tenemos que primero crear la tarea de forma manual e indicarle al mock que debe retornar
-     * esa tarea que se creo, para esto, tenemos que entender que el error que ocurre es cuando se llama a save, para esto decimos
-     * que cuanddo llegue a ese punto entonces retorne nuestra entidad creada, de esta forma no interactua con el mock creado.
-     * 
-     */
-    // @Test
-    // public void create_shouldCreateTask(){
-    //     TaskCreateRequest request = new TaskCreateRequest();
-    //     request.setTitle("Nueva tarea");
-    //     request.setDescription("Descripción de prueba");
-    //     request.setPriority(TaskPriority.HIGH);
-    //     request.setDueDate(LocalDate.of(2026, 11, 1));
-
-    //     TaskEntity savedEntity = new TaskEntity();
-    //     savedEntity.setId(10L);
-    //     savedEntity.setTitle("Nueva tarea");
-    //     savedEntity.setDescription("Descripción de prueba");
-    //     savedEntity.setPriority(TaskPriority.HIGH);
-    //     savedEntity.setDueDate(LocalDate.of(2026, 11, 1));
-    //     savedEntity.setStatus(TaskStatus.PENDING);
-    //     savedEntity.setCreatedAt(LocalDateTime.now());
-
-    //     when(taskRepository.save(any(TaskEntity.class))).thenReturn(savedEntity);
-
-    //     TaskResponse result = taskService.create(request);
-
-    //     assertEquals(10L, result.getId());
-    //     assertEquals("Nueva tarea", result.getTitle());
-    // }
-
-    /**
-     * Este metodo se encarga de realizar la creacion de una tarea, pero, tiene en cuenta el valor predeterminado de los
-     * status cuando estos mismos no se mencionan, por ende, este es el valor que tenemos que comparar, donde el status
-     * esperado como salida sea "PENDING"
-     * 
-     */
-    // @Test
-    // public void create_shouldAssignDefaultStatus(){
-    //     TaskCreateRequest request = new TaskCreateRequest();
-    //     request.setTitle("Nueva tarea");
-    //     request.setDescription("Descripción de prueba");
-    //     request.setDueDate(LocalDate.of(2026, 11, 1));
-
-    //     when(taskRepository.save(any(TaskEntity.class))).thenAnswer(invocation -> {
-    //         TaskEntity entity = invocation.getArgument(0);
-    //         entity.setId(20L);
-    //         return entity;
-    //     });
-
-    //     TaskResponse result = taskService.create(request);
-
-    //     assertEquals(TaskStatus.PENDING, result.getStatus());
-
-    //     //Se verifica que los otros casos default se configuraron de forma adecuada
-
-    //     assertEquals(TaskPriority.MEDIUM, result.getPriority());
-    //     assertEquals(LocalDateTime.now(), result.getCreatedAt());
-    // }
-
-    /**
-     * Esta prueba se encarga de verificar que una tarea puede ser actualizada de forma adecuada dentr del sistema, para esto
-     * se va a tomar una de las tareas ya existentes y se va a editar uno de sus valores
-     * 
+     * Acceso cruzado: la tarea 1 existe pero pertenece a otro usuario. Para el servicio es indistinguible de una
+     * tarea inexistente (404), y nunca se busca solo por id.
      */
     @Test
-    public void update_shouldUpdateExistingTask(){
+    public void findById_shouldThrowExceptionWhenTaskBelongsToAnotherUser() {
+        when(taskRepository.findByIdAndUserId(1L, OTHER_USER_ID)).thenReturn(Optional.empty());
+
+        assertThrows(TaskNotFoundException.class, () -> taskService.findById(1L, OTHER_USER_ID));
+        verify(taskRepository, never()).findById(any());
+    }
+
+    // ---------------------------------------------------------------- create
+
+    /** La tarea creada queda asociada al usuario autenticado. */
+    @Test
+    public void create_shouldCreateTaskForAuthenticatedUser() {
+        TaskCreateRequest request = new TaskCreateRequest();
+        request.setTitle("Nueva tarea");
+        request.setDescription("Descripción de prueba");
+        request.setPriority(TaskPriority.HIGH);
+        request.setDueDate(LocalDate.of(2026, 11, 1));
+
+        UserEntity owner = new UserEntity();
+        owner.setId(USER_ID);
+        when(userRepository.getReferenceById(USER_ID)).thenReturn(owner);
+        when(taskRepository.save(any(TaskEntity.class))).thenAnswer(invocation -> {
+            TaskEntity entity = invocation.getArgument(0);
+            entity.setId(10L);
+            return entity;
+        });
+
+        TaskResponse result = taskService.create(request, USER_ID);
+
+        ArgumentCaptor<TaskEntity> captor = ArgumentCaptor.forClass(TaskEntity.class);
+        verify(taskRepository).save(captor.capture());
+        assertSame(owner, captor.getValue().getUser());
+        assertEquals(10L, result.getId());
+        assertEquals("Nueva tarea", result.getTitle());
+    }
+
+    /** Valores por defecto cuando el request no los trae: estado PENDING y prioridad MEDIUM. */
+    @Test
+    public void create_shouldAssignDefaults() {
+        TaskCreateRequest request = new TaskCreateRequest();
+        request.setTitle("Nueva tarea");
+        request.setDescription("Descripción de prueba");
+        request.setDueDate(LocalDate.of(2026, 11, 1));
+
+        when(taskRepository.save(any(TaskEntity.class))).thenAnswer(invocation -> {
+            TaskEntity entity = invocation.getArgument(0);
+            entity.setId(20L);
+            return entity;
+        });
+
+        TaskResponse result = taskService.create(request, USER_ID);
+
+        assertEquals(TaskStatus.PENDING, result.getStatus());
+        assertEquals(TaskPriority.MEDIUM, result.getPriority());
+        // LocalDateTime.now() nunca coincide exactamente entre dos llamadas: se comprueba que exista y no sea futura.
+        assertNotNull(result.getCreatedAt());
+        assertFalse(result.getCreatedAt().isAfter(LocalDateTime.now()));
+    }
+
+    // ---------------------------------------------------------------- update
+
+    @Test
+    public void update_shouldUpdateExistingTask() {
         TaskUpdateRequest request = new TaskUpdateRequest();
         request.setTitle("Título actualizado");
         request.setDescription("Nueva descripcion");
@@ -174,57 +174,65 @@ public class TaskServicesTest {
         request.setPriority(TaskPriority.LOW);
         request.setDueDate(LocalDate.of(2026, 12, 1));
 
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(existingTask));
+        when(taskRepository.findByIdAndUserId(1L, USER_ID)).thenReturn(Optional.of(existingTask));
         when(taskRepository.save(any(TaskEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        TaskResponse result = taskService.update(1L, request);
+        TaskResponse result = taskService.update(1L, request, USER_ID);
 
         assertEquals("Nueva descripcion", result.getDescription());
         assertEquals(TaskStatus.IN_PROGRESS, result.getStatus());
     }
 
-    /**
-     * Esta prueba se encarga de detectar cuando una prueba que se esta intentando actualizar no existe dentro de la base
-     * de datos, retornando el valor esperado de una excepcion.
-     * 
-     */
     @Test
-    public void update_shouldThrowExceptionWhenTaskDoesNotExist(){
+    public void update_shouldThrowExceptionWhenTaskDoesNotExist() {
         TaskUpdateRequest request = new TaskUpdateRequest();
         request.setTitle("Título actualizado");
-        request.setDescription("Nueva descripcion");
         request.setStatus(TaskStatus.IN_PROGRESS);
         request.setPriority(TaskPriority.LOW);
-        request.setDueDate(LocalDate.of(2026, 12, 1));
 
-        when(taskRepository.findById(99L)).thenReturn(Optional.empty());
+        when(taskRepository.findByIdAndUserId(99L, USER_ID)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> taskService.update(99L, request));
+        assertThrows(TaskNotFoundException.class, () -> taskService.update(99L, request, USER_ID));
     }
 
-    /**
-     * Esta prueba se encarga de eliminar una prueba existente dentro de la base de datos y eliminarla por completo
-     * dado como valor esperado
-     * 
-     */
+    /** Un usuario no puede modificar la tarea de otro: no se llega a guardar nada. */
     @Test
-    public void delete_shouldDeleteExistingTask(){
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(existingTask));
+    public void update_shouldNotModifyTaskOfAnotherUser() {
+        TaskUpdateRequest request = new TaskUpdateRequest();
+        request.setTitle("Intento de modificacion");
+        request.setStatus(TaskStatus.COMPLETED);
+        request.setPriority(TaskPriority.LOW);
 
-        taskService.delete(1L);
+        when(taskRepository.findByIdAndUserId(1L, OTHER_USER_ID)).thenReturn(Optional.empty());
+
+        assertThrows(TaskNotFoundException.class, () -> taskService.update(1L, request, OTHER_USER_ID));
+        verify(taskRepository, never()).save(any(TaskEntity.class));
+    }
+
+    // ---------------------------------------------------------------- delete
+
+    @Test
+    public void delete_shouldDeleteExistingTask() {
+        when(taskRepository.findByIdAndUserId(1L, USER_ID)).thenReturn(Optional.of(existingTask));
+
+        taskService.delete(1L, USER_ID);
 
         verify(taskRepository, times(1)).delete(existingTask);
     }
 
-    /**
-     * Este metodo se encarga de verificar que al momento de tratar de eliminar una tarea con un ID que no existe, esta
-     * retorne una excepcion que marque el error presentado
-     * 
-     */
     @Test
-    public void delete_shouldThrowExceptionWhenTaskDoesNotExist(){
-        when(taskRepository.findById(99L)).thenReturn(Optional.empty());
+    public void delete_shouldThrowExceptionWhenTaskDoesNotExist() {
+        when(taskRepository.findByIdAndUserId(99L, USER_ID)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> taskService.delete(99L));
+        assertThrows(TaskNotFoundException.class, () -> taskService.delete(99L, USER_ID));
+    }
+
+    /** Un usuario no puede eliminar la tarea de otro: delete nunca se ejecuta. */
+    @Test
+    public void delete_shouldNotDeleteTaskOfAnotherUser() {
+        when(taskRepository.findByIdAndUserId(1L, OTHER_USER_ID)).thenReturn(Optional.empty());
+
+        assertThrows(TaskNotFoundException.class, () -> taskService.delete(1L, OTHER_USER_ID));
+        verify(taskRepository, never()).delete(any(TaskEntity.class));
     }
 }

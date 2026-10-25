@@ -37,8 +37,8 @@ public class TaskController {
      * @return
      */
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> findAll(){
-        return ResponseEntity.ok(taskService.findAll());
+    public ResponseEntity<List<TaskResponse>> findAll(@AuthenticationPrincipal Jwt jwt){
+        return ResponseEntity.ok(taskService.findAll(Long.valueOf(jwt.getSubject())));
     }
 
     /**
@@ -49,8 +49,8 @@ public class TaskController {
      * @return
      */
     @GetMapping("/{id}")
-    public ResponseEntity<TaskResponse> findById(@PathVariable Long id){
-        return ResponseEntity.ok(taskService.findById(id));
+    public ResponseEntity<TaskResponse> findById(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
+        return ResponseEntity.ok(taskService.findById(id, Long.valueOf(jwt.getSubject())));
     }
 
     /**
@@ -74,8 +74,8 @@ public class TaskController {
      * @return
      */
     @PutMapping("/{id}")
-    public ResponseEntity<TaskResponse> update(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request){
-        return ResponseEntity.ok(taskService.update(id,request));
+    public ResponseEntity<TaskResponse> update(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request, @AuthenticationPrincipal Jwt jwt){
+        return ResponseEntity.ok(taskService.update(id,request, Long.valueOf(jwt.getSubject())));
     }
 
     /**
@@ -86,8 +86,8 @@ public class TaskController {
      * @return
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<TaskResponse> delete(@PathVariable Long id){
-        taskService.delete(id);
+    public ResponseEntity<TaskResponse> delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
+        taskService.delete(id, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 }

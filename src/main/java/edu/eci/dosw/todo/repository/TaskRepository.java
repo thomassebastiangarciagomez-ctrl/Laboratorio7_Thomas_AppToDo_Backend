@@ -1,5 +1,6 @@
 package edu.eci.dosw.todo.repository;
 import edu.eci.dosw.todo.entity.TaskEntity;
+import edu.eci.dosw.todo.entity.TaskStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,4 +15,5 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
 
     Optional<TaskEntity> findByIdAndUserId(Long id, Long userId);
     
+    long countByStatus(TaskStatus status);
 }
