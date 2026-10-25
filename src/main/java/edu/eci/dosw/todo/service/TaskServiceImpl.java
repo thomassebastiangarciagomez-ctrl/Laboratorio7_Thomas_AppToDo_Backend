@@ -9,12 +9,15 @@ import edu.eci.dosw.todo.entity.TaskPriority;
 import edu.eci.dosw.todo.entity.TaskStatus;
 import edu.eci.dosw.todo.exception.TaskNotFoundException;
 import edu.eci.dosw.todo.repository.TaskRepository;
+import edu.eci.dosw.todo.repository.UserRepository;
+
 import org.springframework.stereotype.Service;
 
 @Service
 public class TaskServiceImpl implements TaskService{
     
     private TaskRepository taskRepository;
+    private UserRepository userRepository;
 
     public TaskServiceImpl(TaskRepository taskRepository){
         this.taskRepository = taskRepository;
@@ -22,7 +25,6 @@ public class TaskServiceImpl implements TaskService{
 
     /**
      * 
-     * @see edu.eci.dosw.todo.service.TaskService#findAll()
      */
     @Override
     public List<TaskResponse> findAll(){
@@ -33,7 +35,6 @@ public class TaskServiceImpl implements TaskService{
 
     /**
      * 
-     * @see edu.eci.dosw.todo.service.TaskService#findById(java.lang.Long)
      */
     @Override
     public TaskResponse findById(Long id){
@@ -43,11 +44,11 @@ public class TaskServiceImpl implements TaskService{
     }
 
     /**
-     * 
-     * @see edu.eci.dosw.todo.service.TaskService#create(edu.eci.dosw.todo.dto.TaskCreateRequest)
+     * Este metodo se encarga de realizar la logica detras de crear una nueva tarea dentro de la
+     * aplicacion web
      */
     @Override
-    public TaskResponse create(TaskCreateRequest request){
+    public TaskResponse create(TaskCreateRequest request, Long userId){
         TaskEntity entity = new TaskEntity();
         entity.setTitle(request.getTitle());
         entity.setDescription(request.getDescription());
@@ -55,14 +56,15 @@ public class TaskServiceImpl implements TaskService{
         entity.setPriority(request.getPriority() != null ? request.getPriority() : TaskPriority.MEDIUM);
         entity.setDueDate(request.getDueDate());
         entity.setCreatedAt(LocalDateTime.now());
+        entity.setUser(userRepository.getReferenceById(userId));
 
         TaskEntity saved = taskRepository.save(entity);
         return TaskResponse.fromEntity(saved);
     }
 
     /**
-     * 
-     * @see edu.eci.dosw.todo.service.TaskService#update(java.lang.Long, edu.eci.dosw.todo.dto.TaskUpdateRequest)
+     * Este metodo se encarga de realizar la actualizacion de los datos de una tarea en especifico dentro
+     * de la aplicacion web
      */
     @Override
     public TaskResponse update(Long id, TaskUpdateRequest request) {
@@ -78,8 +80,7 @@ public class TaskServiceImpl implements TaskService{
     }
 
     /**
-     * 
-     * @see edu.eci.dosw.todo.service.TaskService#delete(java.lang.Long)
+     * Este metodo se encarga de eliminar una tarea dentro de la aplicacion web
      */
     @Override
     public void delete(Long id){

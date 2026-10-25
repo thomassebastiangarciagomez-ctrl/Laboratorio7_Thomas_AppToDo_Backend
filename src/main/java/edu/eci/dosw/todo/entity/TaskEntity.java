@@ -37,6 +37,10 @@ public class TaskEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
+
     /**
      * Todos los metodos necesarios para poder acceder a los valores dentro de la tabla debido a que todos
      * los atributos anteriormente creados son private (Gets).
@@ -62,4 +66,7 @@ public class TaskEntity {
 
     public LocalDateTime getCreatedAt(){ return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt){ this.createdAt = createdAt; }
+
+    public UserEntity getUser() { return user; }
+    public void setUser(UserEntity user) { this.user = user; }
 }
