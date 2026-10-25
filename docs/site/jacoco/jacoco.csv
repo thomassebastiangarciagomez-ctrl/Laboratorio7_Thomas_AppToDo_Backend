@@ -1,0 +1,14 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+,edu.eci.dosw.todo.controller,TaskController,0,41,0,0,0,10,0,6,0,6
+,edu.eci.dosw.todo.service,TaskServiceImpl,0,136,0,2,0,31,0,11,0,10
+,edu.eci.dosw.todo.entity,TaskPriority,0,21,0,0,0,4,0,1,0,1
+,edu.eci.dosw.todo.entity,TaskStatus,0,21,0,0,0,4,0,1,0,1
+,edu.eci.dosw.todo.entity,TaskEntity,0,52,0,0,0,15,0,15,0,15
+,edu.eci.dosw.todo.config,Config,3,0,0,0,1,0,1,0,1,0
+,edu.eci.dosw.todo.dto,TaskResponse,0,86,0,0,0,24,0,16,0,16
+,edu.eci.dosw.todo.dto,TaskError,8,15,0,0,2,6,2,3,2,3
+,edu.eci.dosw.todo.dto,TaskCreateRequest,0,31,0,0,0,9,0,9,0,9
+,edu.eci.dosw.todo.dto,TaskUpdateRequest,0,38,0,0,0,11,0,11,0,11
+,edu.eci.dosw.todo.exception,TaskNotFoundException,0,6,0,0,0,2,0,1,0,1
+,edu.eci.dosw.todo.exception,GlobalExceptionHandler,0,39,0,0,0,6,0,4,0,4
+,edu.eci.dosw.todo,TodoApiApplication,5,3,0,0,2,1,1,1,1,1
