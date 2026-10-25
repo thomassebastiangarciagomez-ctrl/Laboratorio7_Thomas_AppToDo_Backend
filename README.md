@@ -52,3 +52,10 @@ Ahora, despues de realizar esta actualizacion, se tienen que agregar las depende
 
 Con esto, ya tendremos las dependencias adecuadas para poder realizar la integracion de todo el sistema de seguridad en nuestra aplicacion AppToDo.
 
+
+## Links asociados a la entrega
+
+1. Video demostrativo:
+
+
+2. Link del Jira del laboratorio: https://mail-team-akmn63s0.atlassian.net/jira/software/projects/LAB/summary
