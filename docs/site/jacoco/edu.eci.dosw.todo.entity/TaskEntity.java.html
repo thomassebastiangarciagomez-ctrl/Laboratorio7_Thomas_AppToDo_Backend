@@ -37,30 +37,37 @@ import jakarta.persistence.*;
     @Column(name = &quot;created_at&quot;, nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = &quot;user_id&quot;, nullable = false)
+    private UserEntity user;
+
     /**
      * Todos los metodos necesarios para poder acceder a los valores dentro de la tabla debido a que todos
      * los atributos anteriormente creados son private (Gets).
      */
 
-<span class="fc" id="L45">    public Long getId(){ return id; }</span>
-<span class="fc" id="L46">    public void setId(Long id ) {this.id = id; }</span>
+<span class="fc" id="L49">    public Long getId(){ return id; }</span>
+<span class="fc" id="L50">    public void setId(Long id ) {this.id = id; }</span>
 
-<span class="fc" id="L48">    public String getTitle() {return title; }</span>
-<span class="fc" id="L49">    public void setTitle(String title){ this.title = title; }</span>
+<span class="fc" id="L52">    public String getTitle() {return title; }</span>
+<span class="fc" id="L53">    public void setTitle(String title){ this.title = title; }</span>
 
-<span class="fc" id="L51">    public String getDescription(){ return description; }</span>
-<span class="fc" id="L52">    public void setDescription(String description){ this.description = description; }</span>
+<span class="fc" id="L55">    public String getDescription(){ return description; }</span>
+<span class="fc" id="L56">    public void setDescription(String description){ this.description = description; }</span>
 
-<span class="fc" id="L54">    public TaskStatus getStatus(){ return status; }</span>
-<span class="fc" id="L55">    public void setStatus(TaskStatus status){ this.status = status; }</span>
+<span class="fc" id="L58">    public TaskStatus getStatus(){ return status; }</span>
+<span class="fc" id="L59">    public void setStatus(TaskStatus status){ this.status = status; }</span>
 
-<span class="fc" id="L57">    public TaskPriority getPriority(){ return priority; }</span>
-<span class="fc" id="L58">    public void setPriority(TaskPriority priority){ this.priority = priority; }</span>
+<span class="fc" id="L61">    public TaskPriority getPriority(){ return priority; }</span>
+<span class="fc" id="L62">    public void setPriority(TaskPriority priority){ this.priority = priority; }</span>
 
-<span class="fc" id="L60">    public LocalDate getDueDate(){ return dueDate; }</span>
-<span class="fc" id="L61">    public void setDueDate(LocalDate dueDate){ this.dueDate = dueDate; }</span>
+<span class="fc" id="L64">    public LocalDate getDueDate(){ return dueDate; }</span>
+<span class="fc" id="L65">    public void setDueDate(LocalDate dueDate){ this.dueDate = dueDate; }</span>
 
-<span class="fc" id="L63">    public LocalDateTime getCreatedAt(){ return createdAt; }</span>
-<span class="fc" id="L64">    public void setCreatedAt(LocalDateTime createdAt){ this.createdAt = createdAt; }</span>
+<span class="fc" id="L67">    public LocalDateTime getCreatedAt(){ return createdAt; }</span>
+<span class="fc" id="L68">    public void setCreatedAt(LocalDateTime createdAt){ this.createdAt = createdAt; }</span>
+
+<span class="fc" id="L70">    public UserEntity getUser() { return user; }</span>
+<span class="fc" id="L71">    public void setUser(UserEntity user) { this.user = user; }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>
