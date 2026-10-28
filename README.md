@@ -319,7 +319,7 @@ Como se puede observar en las imagenes, el objetivo propuesto para este laborato
 
 ## Links asociados a la entrega
 
-1. Video demostrativo: 
+1. Video demostrativo: https://www.youtube.com/watch?v=ryomdLlckGA
 
 
 2. Link del Jira del laboratorio: https://mail-team-akmn63s0.atlassian.net/jira/software/projects/LAB/boards/42/timeline
