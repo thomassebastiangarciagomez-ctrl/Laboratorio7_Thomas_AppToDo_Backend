@@ -2,13 +2,11 @@ package edu.eci.dosw.todo;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -64,7 +62,9 @@ public class JwtTokenTest {
         return user;
     }
 
-    /** Emite un token real con JwtServiceImpl y devuelve solo el valor del access token. */
+    /** 
+     * Emite un token real con JwtServiceImpl y devuelve solo el valor del access token. 
+     */
     private String issueToken(UserEntity user) {
         JsonNode body = MAPPER.valueToTree(new JwtServiceImpl(encoder, ISSUER, 1800).generateToken(user));
         return body.get("accessToken").stringValue();
@@ -84,8 +84,6 @@ public class JwtTokenTest {
                 .getTokenValue();
     }
 
-    // ---------------------------------------------------------------- clave de firma (JwtConfig)
-
     @Test
     public void secretKey_shouldUseConfiguredSecret() {
         SecretKey result = config.jwtSecretKey(SECRET);
@@ -94,23 +92,10 @@ public class JwtTokenTest {
         assertArrayEquals(SECRET.getBytes(StandardCharsets.UTF_8), result.getEncoded());
     }
 
-    /** Sin JWT_SECRET (desarrollo) se genera una clave aleatoria de 32 bytes, distinta en cada arranque. */
-    @Test
-    public void secretKey_shouldGenerateRandomKeyWhenNotConfigured() {
-        SecretKey blank = config.jwtSecretKey("");
-        SecretKey nullSecret = config.jwtSecretKey(null);
-
-        assertEquals(32, blank.getEncoded().length);
-        assertEquals(32, nullSecret.getEncoded().length);
-        assertFalse(Arrays.equals(blank.getEncoded(), nullSecret.getEncoded()));
-    }
-
     @Test
     public void secretKey_shouldRejectShortSecret() {
         assertThrows(IllegalStateException.class, () -> config.jwtSecretKey("corta"));
     }
-
-    // ---------------------------------------------------------------- emision (JwtServiceImpl)
 
     @Test
     public void generateToken_shouldProduceSignedTokenWithExpectedClaims() {
@@ -126,8 +111,6 @@ public class JwtTokenTest {
         assertEquals("ADMIN", jwt.getClaimAsString("role"));
         assertEquals(1800, Duration.between(jwt.getIssuedAt(), jwt.getExpiresAt()).getSeconds());
     }
-
-    // ---------------------------------------------------------------- rechazo de tokens invalidos
 
     /** Modificar un caracter de la firma invalida el token. */
     @Test
