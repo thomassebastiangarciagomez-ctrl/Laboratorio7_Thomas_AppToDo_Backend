@@ -1,13 +1,10 @@
 package edu.eci.dosw.todo.config;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.time.Duration;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,21 +26,19 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 @Configuration 
 public class JwtConfig {
 
-    private static final Logger log = LoggerFactory.getLogger(JwtConfig.class);
+    private static final int MIN_SECRET_BYTES = 32;
 
     @Bean
-    public SecretKey jwtSecretKey(@Value("${app.security.jwt.secret}") String secret) {
-        byte[] bytes;
+    public SecretKey jwtSecretKey(@Value("${app.security.jwt.secret:}") String secret) {
         if (secret == null || secret.isBlank()) {
-            log.warn("JWT_SECRET no está configurada: se usa una clave aleatoria generada al arrancar. "
-                    + "Los tokens dejarán de ser válidos al reiniciar. Úselo solo en desarrollo.");
-            bytes = new byte[32];
-            new SecureRandom().nextBytes(bytes);
-        } else {
-            bytes = secret.getBytes(StandardCharsets.UTF_8);
-            if (bytes.length < 32) {
-                throw new IllegalStateException("JWT_SECRET debe tener al menos 32 bytes");
-            }
+            throw new IllegalStateException(
+                    "Falta la clave de firma JWT. Defina JWT_SECRET (mínimo 32 bytes). "
+                    + "Para generar una: openssl rand -base64 48");
+        }
+        byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length < MIN_SECRET_BYTES) {
+            throw new IllegalStateException(
+                    "JWT_SECRET debe tener al menos " + MIN_SECRET_BYTES + " bytes (tiene " + bytes.length + ").");
         }
         return new SecretKeySpec(bytes, "HmacSHA256");
     }
