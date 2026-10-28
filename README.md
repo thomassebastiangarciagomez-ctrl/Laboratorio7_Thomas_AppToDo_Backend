@@ -323,3 +323,9 @@ Como se puede observar en las imagenes, el objetivo propuesto para este laborato
 
 
 2. Link del Jira del laboratorio: https://mail-team-akmn63s0.atlassian.net/jira/software/projects/LAB/boards/42/timeline
+
+
+3. Link del repositorio de backend del laboratorio 6: https://github.com/thomassebastiangarciagomez-ctrl/Laboratorio6_Thomas_AppToDo_BackEnd
+
+
+4. Link del repositorio de frontend del laboratorio 6: https://github.com/thomassebastiangarciagomez-ctrl/Laboratorio6_Thomas_AppToDo_FrontEnd
