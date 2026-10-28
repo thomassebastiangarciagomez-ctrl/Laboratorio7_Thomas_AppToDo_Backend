@@ -4,13 +4,13 @@ import java.util.*;
 
 public interface TaskService {
     
-    List<TaskResponse> findAll();
+    List<TaskResponse> findAll(Long userId);
 
-    TaskResponse findById(Long Id);
+    TaskResponse findById(Long Id, Long userId);
 
-    TaskResponse create(TaskCreateRequest request);
+    TaskResponse create(TaskCreateRequest request, Long userId);
 
-    TaskResponse update(Long id, TaskUpdateRequest request);
+    TaskResponse update(Long id, TaskUpdateRequest request, Long userId);
 
-    void delete(Long id);
+    void delete(Long id, Long userId);
 }

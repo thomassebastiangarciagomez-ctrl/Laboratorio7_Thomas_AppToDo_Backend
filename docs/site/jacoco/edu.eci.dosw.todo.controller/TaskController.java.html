@@ -4,6 +4,8 @@ import java.util.*;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,9 +26,9 @@ import jakarta.validation.Valid;
 public class TaskController {
     private TaskService taskService;
 
-<span class="fc" id="L27">    public TaskController(TaskService taskService){</span>
-<span class="fc" id="L28">        this.taskService = taskService;</span>
-<span class="fc" id="L29">    }</span>
+<span class="fc" id="L29">    public TaskController(TaskService taskService){</span>
+<span class="fc" id="L30">        this.taskService = taskService;</span>
+<span class="fc" id="L31">    }</span>
 
     /**
      * Endpoint encargado de mostrar todos las tareas que estan publicadas en este momento, esta retorna una lista
@@ -35,8 +37,8 @@ public class TaskController {
      * @return
      */
     @GetMapping
-    public ResponseEntity&lt;List&lt;TaskResponse&gt;&gt; findAll(){
-<span class="fc" id="L39">        return ResponseEntity.ok(taskService.findAll());</span>
+    public ResponseEntity&lt;List&lt;TaskResponse&gt;&gt; findAll(@AuthenticationPrincipal Jwt jwt){
+<span class="fc" id="L41">        return ResponseEntity.ok(taskService.findAll(Long.valueOf(jwt.getSubject())));</span>
     }
 
     /**
@@ -47,8 +49,8 @@ public class TaskController {
      * @return
      */
     @GetMapping(&quot;/{id}&quot;)
-    public ResponseEntity&lt;TaskResponse&gt; findById(@PathVariable Long id){
-<span class="fc" id="L51">        return ResponseEntity.ok(taskService.findById(id));</span>
+    public ResponseEntity&lt;TaskResponse&gt; findById(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
+<span class="fc" id="L53">        return ResponseEntity.ok(taskService.findById(id, Long.valueOf(jwt.getSubject())));</span>
     }
 
     /**
@@ -58,9 +60,9 @@ public class TaskController {
      * @return
      */
     @PostMapping
-    public ResponseEntity&lt;TaskResponse&gt; create(@Valid @RequestBody TaskCreateRequest request){
-<span class="fc" id="L62">        TaskResponse created = taskService.create(request);</span>
-<span class="fc" id="L63">        return ResponseEntity.status(HttpStatus.CREATED).body(created);</span>
+    public ResponseEntity&lt;TaskResponse&gt; create(@Valid @RequestBody TaskCreateRequest request, @AuthenticationPrincipal Jwt jwt){
+<span class="fc" id="L64">        TaskResponse created = taskService.create(request, Long.valueOf(jwt.getSubject()));</span>
+<span class="fc" id="L65">        return ResponseEntity.status(HttpStatus.CREATED).body(created);</span>
     }
 
     /**
@@ -72,8 +74,8 @@ public class TaskController {
      * @return
      */
     @PutMapping(&quot;/{id}&quot;)
-    public ResponseEntity&lt;TaskResponse&gt; update(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request){
-<span class="fc" id="L76">        return ResponseEntity.ok(taskService.update(id,request));</span>
+    public ResponseEntity&lt;TaskResponse&gt; update(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request, @AuthenticationPrincipal Jwt jwt){
+<span class="fc" id="L78">        return ResponseEntity.ok(taskService.update(id,request, Long.valueOf(jwt.getSubject())));</span>
     }
 
     /**
@@ -84,9 +86,9 @@ public class TaskController {
      * @return
      */
     @DeleteMapping(&quot;/{id}&quot;)
-    public ResponseEntity&lt;TaskResponse&gt; delete(@PathVariable Long id){
-<span class="fc" id="L88">        taskService.delete(id);</span>
-<span class="fc" id="L89">        return ResponseEntity.noContent().build();</span>
+    public ResponseEntity&lt;TaskResponse&gt; delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
+<span class="fc" id="L90">        taskService.delete(id, Long.valueOf(jwt.getSubject()));</span>
+<span class="fc" id="L91">        return ResponseEntity.noContent().build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

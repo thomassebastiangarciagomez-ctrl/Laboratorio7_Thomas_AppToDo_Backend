@@ -4,6 +4,8 @@ import java.util.*;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,8 +37,8 @@ public class TaskController {
      * @return
      */
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> findAll(){
-        return ResponseEntity.ok(taskService.findAll());
+    public ResponseEntity<List<TaskResponse>> findAll(@AuthenticationPrincipal Jwt jwt){
+        return ResponseEntity.ok(taskService.findAll(Long.valueOf(jwt.getSubject())));
     }
 
     /**
@@ -47,8 +49,8 @@ public class TaskController {
      * @return
      */
     @GetMapping("/{id}")
-    public ResponseEntity<TaskResponse> findById(@PathVariable Long id){
-        return ResponseEntity.ok(taskService.findById(id));
+    public ResponseEntity<TaskResponse> findById(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
+        return ResponseEntity.ok(taskService.findById(id, Long.valueOf(jwt.getSubject())));
     }
 
     /**
@@ -58,8 +60,8 @@ public class TaskController {
      * @return
      */
     @PostMapping
-    public ResponseEntity<TaskResponse> create(@Valid @RequestBody TaskCreateRequest request){
-        TaskResponse created = taskService.create(request);
+    public ResponseEntity<TaskResponse> create(@Valid @RequestBody TaskCreateRequest request, @AuthenticationPrincipal Jwt jwt){
+        TaskResponse created = taskService.create(request, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -72,8 +74,8 @@ public class TaskController {
      * @return
      */
     @PutMapping("/{id}")
-    public ResponseEntity<TaskResponse> update(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request){
-        return ResponseEntity.ok(taskService.update(id,request));
+    public ResponseEntity<TaskResponse> update(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request, @AuthenticationPrincipal Jwt jwt){
+        return ResponseEntity.ok(taskService.update(id,request, Long.valueOf(jwt.getSubject())));
     }
 
     /**
@@ -84,8 +86,8 @@ public class TaskController {
      * @return
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<TaskResponse> delete(@PathVariable Long id){
-        taskService.delete(id);
+    public ResponseEntity<TaskResponse> delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
+        taskService.delete(id, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 }
